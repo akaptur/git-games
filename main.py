@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
+from flask_sockets import Sockets
 import docker
 import requests # this is silly
 import pdb
@@ -6,6 +7,7 @@ import os
 import json
 
 app = Flask(__name__)
+sockets = Sockets(app)
 
 create = json.dumps({
          "Hostname":"",
@@ -17,7 +19,7 @@ create = json.dumps({
          "AttachStderr":True,
          "PortSpecs":None,
          "Tty":False,
-         "OpenStdin":False,
+         "OpenStdin":True,
          "StdinOnce":False,
          "Env":None,
          "Cmd":[
@@ -55,14 +57,24 @@ def home():
     # hardcode to go to level 1 for now
     return redirect(url_for('levels', level=1))
 
-@app.route('/levels/<level>', methods=['GET', 'POST'])
-def levels(level):
+@sockets.route('/echo')
+def echo(sock):
+    message = sock.receive()
+    print message
+    sock.send(message[::-1])
+
+@sockets.route('/levels/<level>', methods=['GET', 'POST'])
+def levels(level, sock):
     if request.method == 'GET':
+
         return render_template('level.html')
     else:
-        pass
         # send command to docker and redirect
-        # command = request.form['command']
+        # attach to container
+        container_id = app.containers[0][u'Id']
+        r = requests.post(base_url + '/containers/%s/attach' % container_id, params={"stdin":True, "stdout": True})
+        # pdb.set_trace()
+        command = request.form['command']
 
 
 if __name__ == '__main__':
