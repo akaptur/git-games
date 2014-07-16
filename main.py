@@ -5,9 +5,13 @@ import requests # this is silly
 import pdb
 import os
 import json
+import time
 
 app = Flask(__name__)
 sockets = Sockets(app)
+app.debug = True
+t = time.localtime()
+print "%s:%s:%s" % (t.tm_hour, t.tm_min, t.tm_sec)
 
 create = json.dumps({
          "Hostname":"",
@@ -48,14 +52,14 @@ def admin():
     """ Show a list of containers."""
     r = requests.get(base_url + '/containers/json', params={'all': 1})
     app.containers = r.json()
+    # pdb.set_trace()
     return str([c[u"Names"] for c in app.containers])
 
 @app.route('/', methods=['GET'])
 def home():
-    """ Spin up a new container and redirect to level 1."""
+    """ Spin up a new container."""
     r = requests.post(base_url + '/containers/create', data=create)
-    # hardcode to go to level 1 for now
-    return redirect(url_for('levels', level=1))
+    return render_template('home.html')
 
 @sockets.route('/echo')
 def echo(sock):
@@ -63,18 +67,20 @@ def echo(sock):
     print message
     sock.send(message[::-1])
 
-@sockets.route('/levels/<level>', methods=['GET', 'POST'])
-def levels(level, sock):
-    if request.method == 'GET':
+@sockets.route('/levels')
+def levels(sock):
+    level = int(sock.receive())
+    print level
+    sock.send("ack")
+    while True:
+        msg = sock.receive()
+        sock.send(message[::-1])
+    # print level, sock, message
+    # send command to docker and redirect
+    # attach to container
+    # container_id = app.containers[0][u'Id']
+    # r = requests.post(base_url + '/containers/%s/attach' % container_id, params={"stdin":True, "stdout": True})
 
-        return render_template('level.html')
-    else:
-        # send command to docker and redirect
-        # attach to container
-        container_id = app.containers[0][u'Id']
-        r = requests.post(base_url + '/containers/%s/attach' % container_id, params={"stdin":True, "stdout": True})
-        # pdb.set_trace()
-        command = request.form['command']
 
 
 if __name__ == '__main__':
