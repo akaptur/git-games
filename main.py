@@ -18,7 +18,7 @@ create = json.dumps({
          "User":"",
          "Memory":0,
          "MemorySwap":0,
-         "AttachStdin":False,
+         "AttachStdin":True,
          "AttachStdout":True,
          "AttachStderr":True,
          "PortSpecs":None,
@@ -52,7 +52,7 @@ def admin():
     """ Show a list of containers."""
     r = requests.get(base_url + '/containers/json', params={'all': 1})
     app.containers = r.json()
-    # pdb.set_trace()
+    print app.containers[0]
     return str([c[u"Names"] for c in app.containers])
 
 @app.route('/', methods=['GET'])
@@ -66,6 +66,10 @@ def echo(sock):
     message = sock.receive()
     print message
     sock.send(message[::-1])
+
+@app.route('/terminal')
+def term():
+    return "gotcha" + render_template('level.html')
 
 @sockets.route('/levels')
 def levels(sock):
