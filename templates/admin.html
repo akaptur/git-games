@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head><title>Containers: Admin</title></head>
+  <body>
+    {% for title, group in containers.iteritems() %}
+      <h1> {{title}} </h1>
+      {% for id, details in group.iteritems() %}
+        Container:
+        {{ id }}
+        {{ details }}
+        <br>
+        <br>
+      {% endfor %}
+    {% endfor %}
+  </body>
+
+</html>
+

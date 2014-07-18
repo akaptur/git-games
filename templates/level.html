@@ -12,9 +12,10 @@
 
     $(function() {
       var containerId = "971a5a6b382e11f492f7b6fc13db28c09d9661b74bad6c4ec31b45654eacb6de"
-      var ws_url = "ws://localhost:8000/v1.8/containers/" + containerId + "/attach/ws"
+      var ws_url = "ws://192.168.59.103:8000/v1.8/containers/" + containerId + "/attach/ws"
       var wsUri = ws_url + "?logs=1&stderr=1&stdout=1&stream=1&stdin=1";
       var websocket = new WebSocket(wsUri);
+      console.log(wsUri)
 
       websocket.onopen = function(evt) {
         console.log("opened socket")
@@ -39,11 +40,13 @@
         }
 
         websocket.onclose = function(evt) {
+          console.log("socket closed")
           term.write("Session terminated");
-          term.destroy();
+          // term.destroy();
         }
 
         websocket.onerror = function(evt) {
+          console.log("errored out :(")
           if (typeof console.log == "function") { console.log(evt) }
         }
       }

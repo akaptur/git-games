@@ -52,8 +52,15 @@ def admin():
     """ Show a list of containers."""
     r = requests.get(base_url + '/containers/json', params={'all': 1})
     app.containers = r.json()
-    print app.containers[0]
-    return str([c[u"Names"] for c in app.containers])
+    containers = {}
+    for container in app.containers:
+        container_id = container["Id"]
+        containers[container_id] = (requests.get(base_url + "/containers/%s/json" % container_id)).json()
+
+    running_containers = {c_id: c for c_id, c in containers.iteritems() if c["State"]["Running"]}
+    stopped_containers = {c_id: c for c_id, c in containers.iteritems() if not c["State"]["Running"]}
+    display_containers = {"Running": running_containers, "Stopped": stopped_containers}
+    return render_template('admin.html', containers = display_containers)
 
 @app.route('/', methods=['GET'])
 def home():
